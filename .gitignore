@@ -1,0 +1,4 @@
+.qodo
+# Ignore the venv/
+venv/
+document/
