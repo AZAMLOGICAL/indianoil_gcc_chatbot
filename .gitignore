@@ -2,3 +2,6 @@
 # Ignore the venv/
 venv/
 document/
+RAG_Code.ipynb
+.ipynb_checkpoints
+experiment/.ipynb_checkpoints
