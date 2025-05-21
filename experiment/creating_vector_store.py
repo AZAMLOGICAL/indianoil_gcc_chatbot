@@ -64,7 +64,7 @@ embed = OllamaEmbeddings(model=embedding_id)
 vectorstore = Chroma.from_documents(
     documents=chunks,
     embedding=embed,
-    persist_directory='./chroma_db'
+    persist_directory='./chroma_db_experiment'
 )
 
 print('The emebedding data is saved into the chroma db database')
