@@ -5,3 +5,7 @@ document/
 RAG_Code.ipynb
 .ipynb_checkpoints
 experiment/.ipynb_checkpoints
+chroma_db_openai/
+faiss_db_experiment/
+chroma_db_experiment/
+

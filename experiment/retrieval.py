@@ -1,5 +1,6 @@
 from langchain_community.vectorstores import Chroma
 from langchain_ollama import OllamaEmbeddings
+from langchain_openai import OpenAIEmbeddings
 from langchain_core.prompts import ChatPromptTemplate
 from langchain.retrievers import ContextualCompressionRetriever
 from langchain.retrievers.document_compressors import LLMChainExtractor
@@ -7,53 +8,85 @@ from langchain_community.llms import Ollama
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.chains import create_retrieval_chain
 
+import os
+from dotenv import load_dotenv
+load_dotenv()
+
+os.environ["OPENAI_API_KEY"] = os.getenv("OPEN_API_KEY")
+
 # remove the warnings
 import warnings
 warnings.filterwarnings('ignore')
 
-persist_directory = "../chroma_db_experiment"
-embedding_id = "mxbai-embed-large"
+# persist_directory = "../chroma_db_experiment"
+persist_directory = r"chroma_db_openai"
+# embedding_id = "mxbai-embed-large"
 
-embedding = OllamaEmbeddings(model = embedding_id)
+# embedding = OllamaEmbeddings(model = embedding_id)
+
+# Open AI embeddings
+embedding = OpenAIEmbeddings(
+    model = "text-embedding-3-small"
+)
+
+print('The execution of scrpt started')
 
 vector_store = Chroma(
     persist_directory = persist_directory,
     embedding_function=embedding
 )
 
-system_prompt = """
-You are the lawyer and author of the contract agreement written in the organisation Indian Oil Corporation Limited.
-Your job is to help the contractors and the officers of the organisation to do their job better by making them understand various clause agreements,
-quote the necessary contract agreements if asked about the related contract agreements.
-Only extract answers which are relevant to the question.
-If no context is available, use the question as reference.
-Context : {context}
-"""
+# To check wether the vector store is empty or not
+collection = vector_store._collection
+num_vectors = collection.count()
+print(f"Vector store contains {num_vectors} vectors")
 
-retriever = vector_store.as_retriever(search_kwargs = {'k' : 1})
+system_prompt = """
+You are a helpful assistant who answers questions using the provided context. 
+If the answer is not found within the contexzt, just say that the answer of the query is not found within the document.
+""" 
+
+retriever = vector_store.as_retriever(search_kwargs = {'k' : 3})
 
 prompt = ChatPromptTemplate.from_messages([("system", system_prompt),
-                                           ("human", "{input}")])
+                                           ("human", "{context}\n\nQuestion: {input}")])
 
-model_id_gemma = "gemma2:2b"
-llm_url = "http://localhost:11434"
+# model_id = "llama3.2:1b"
+# llm_url = "http://localhost:11434"
 
-llm_gamma = Ollama(model=model_id_gemma, base_url=llm_url, temperature=0.2)
+# llm = Ollama(model=model_id, base_url=llm_url, temperature=0.2)
+from langchain_openai import ChatOpenAI
 
-compressor = LLMChainExtractor.from_llm(llm_gamma)
+llm = ChatOpenAI(
+    model="gpt-4o",
+    temperature=0,
+    max_tokens=None,
+    timeout=None,
+    max_retries=2,
+    # api_key="...",  # if you prefer to pass api key in directly instaed of using env vars
+    # base_url="...",
+    # organization="...",
+    # other params...
+)
+
+compressor = LLMChainExtractor.from_llm(llm)
 
 compressor_retriever = ContextualCompressionRetriever(
     base_compressor = compressor, base_retriever = retriever
 )
 
-question_answer_chain_gamma = create_stuff_documents_chain(llm_gamma, prompt)
-chain_gamma = create_retrieval_chain(compressor_retriever, question_answer_chain_gamma)
+question_answer_chain = create_stuff_documents_chain(llm, prompt)
+chain = create_retrieval_chain(compressor_retriever, question_answer_chain)
 
-question = input()
+# question = input("Enter any question to ask from the chatbot?: ")
 
-response_sample_gamma = chain_gamma.invoke({"input" : question})
+results = retriever.get_relevant_documents("How the payment is done against the work?")
 
-print("Gamma response: ", response_sample_gamma["answer"])
+print(results)
+
+# response_sample = chain.invoke({"input" : question})
+
+# print(f"Model response: ", response_sample["answer"])
 
 
 
