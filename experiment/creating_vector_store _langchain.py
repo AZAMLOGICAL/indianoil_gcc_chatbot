@@ -1,5 +1,6 @@
 # load the document
 from langchain_community.document_loaders import  PDFPlumberLoader
+from langchain_core.documents import Document
 import re
 from tqdm import tqdm
 import chromadb
