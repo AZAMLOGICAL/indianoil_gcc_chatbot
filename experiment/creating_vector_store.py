@@ -16,7 +16,7 @@ logging.getLogger("pdfminer").setLevel(logging.ERROR)
 pages = []
 
 print("The loading of data starts")
-with pdfplumber.open(r"document/Sample Data.pdf") as pdf:
+with pdfplumber.open(r"document/GCC_e78f9d59-77bb-4de7-99f41730977875550_Shefali_Singh.pdf") as pdf:
     for page in pdf.pages:
         # Extract text
         text = page.extract_text()

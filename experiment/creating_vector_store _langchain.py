@@ -19,11 +19,35 @@ pages = []
 print("The loading of data starts")
 with pdfplumber.open(r"document/GCC_e78f9d59-77bb-4de7-99f41730977875550_Shefali_Singh.pdf") as pdf:
     for page in pdf.pages:
+        print('page number :', page.page_number)
         # Extract text
         text = page.extract_text()
+        print('text :', text)
         
         # Extract tables
         tables = page.extract_tables()
+        # print('tables :', tables)
+        
+        if tables and any(tables):
+            table_document = []
+            for row in tables[0][1:]:
+                doc_parts = []
+                headers = tables[0][0]
+                
+                for header, cell in zip(headers, row):
+                    # Clean header and cell of the new linees and extra spaces
+                    clean_header = header.replace('\n', '').strip()
+                    clean_cell = cell.replace('\n', '').strip()
+                    if cell.strip():
+                        doc_parts.append(f"{clean_header} : {clean_cell}")
+                document = "**".join(doc_parts)
+                table_document.append(document)
+            table_text = "\n\n".join(table_document)
+            print("table text", table_text)
+
+            # for row in tables[0]:
+            #     print()
+            
         
         page_info = {
             "text" : text,
@@ -32,7 +56,6 @@ with pdfplumber.open(r"document/GCC_e78f9d59-77bb-4de7-99f41730977875550_Shefali
         }
         
         pages.append(page_info)
-
 print("The loading of data ended")
         
 for page in pages[1:]:
